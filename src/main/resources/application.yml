@@ -1,0 +1,15 @@
+server:
+  port: 2023
+  error:
+    include-stacktrace: never
+
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        '[format_sql]': true
+        '[use_sql_comments]': true
+        

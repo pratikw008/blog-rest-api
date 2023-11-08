@@ -1,10 +1,19 @@
 services:
   mysql:
     image: 'mysql:latest'
+    restart: always
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
+      - 'MYSQL_DATABASE=blog-api'
       - 'MYSQL_PASSWORD=secret'
       - 'MYSQL_ROOT_PASSWORD=verysecret'
       - 'MYSQL_USER=myuser'
     ports:
-      - '3306'
+      - '3340:3306'
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      - 'PMA_ARBITRARY=1'
+    ports:
+      - '3341:80'	
