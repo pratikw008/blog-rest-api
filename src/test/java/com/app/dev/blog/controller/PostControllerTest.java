@@ -1,7 +1,9 @@
 package com.app.dev.blog.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -25,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.app.dev.blog.dtos.PostDto;
+import com.app.dev.blog.dtos.PostPageDto;
 import com.app.dev.blog.service.PostService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,19 +68,25 @@ class PostControllerTest {
 	}
 	
 	@Test
-	void givenListPost_whenGetAllPosts_thenReturnListPostDto() throws Exception {
+	void givenListPost_whenGetAllPosts_thenReturnPaginatedPostPageDto() throws Exception {
+		int pageNo = 0;
+		int pageSize = 10;
 		PostDto postDto2 = PostDto.builder()
 				 				 .id(2)
 				 				 .title("test title 2")
 				 				 .description("test description 2")
 				 				 .content("test content 2").build();
 		List<PostDto> posts = List.of(postDto, postDto2);
-		given(postService.getAllPosts()).willReturn(posts);
+		PostPageDto postPageDto = new PostPageDto(posts, pageNo, pageSize, 2, 1, true);
+		given(postService.getAllPosts(anyInt(), anyInt(), anyString(), anyString())).willReturn(postPageDto);
 		
-		ResultActions resultActions = mockMvc.perform(get("/api/posts"));
+		ResultActions resultActions = mockMvc.perform(get("/api/posts")
+				.param("pageNo", String.valueOf(pageNo))
+				.param("pageSize", String.valueOf(pageSize)));
 											
 		resultActions.andExpect(status().isOk())
-					 .andExpect(jsonPath("$.size()", CoreMatchers.is(posts.size())))
+					 .andExpect(jsonPath("$.content.size()", CoreMatchers.is(posts.size())))
+					 .andExpect(jsonPath("$.content[1].title", CoreMatchers.is(postDto2.getTitle())))
 					 .andDo(print());
 	}
 	

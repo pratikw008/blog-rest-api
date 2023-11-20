@@ -69,19 +69,29 @@ class PostControllerIntegrationTest extends TestContainerConfig {
 	}
 	
 	@Test
-	void givenListPost_whenGetAllPosts_thenReturnListPostDto() throws Exception {
+	void givenListPost_whenGetAllPosts_thenReturnPaginatedPostPageDto() throws Exception {
+		int pageNo = 0;
+		int pageSize = 10;
+		String sortBy = "title";
+		String sortDir = "desc";
 		PostDto postDto2 = PostDto.builder()
 				 				 .title("test title 2")
 				 				 .description("test description 2")
 				 				 .content("test content 2").build();
+		
 		List<PostEntity> posts = List.of(postMapper.convertPostDtoToEntity(postDto), 
 										 postMapper.convertPostDtoToEntity(postDto2));
 		postRepository.saveAll(posts);
 		
-		ResultActions resultActions = mockMvc.perform(get("/api/posts"));
+		ResultActions resultActions = mockMvc.perform(get("/api/posts")
+				.param("pageNo", String.valueOf(pageNo))
+				.param("pageSize", String.valueOf(pageSize))
+				.param("sortBy", sortBy)
+				.param("sortDir", sortDir));
 											
 		resultActions.andExpect(status().isOk())
-					 .andExpect(jsonPath("$.size()", CoreMatchers.is(posts.size())))
+					 .andExpect(jsonPath("$.content.size()", CoreMatchers.is(posts.size())))
+					 .andExpect(jsonPath("$.content[0].title", CoreMatchers.is("test title 2")))
 					 .andDo(print());
 	}
 	

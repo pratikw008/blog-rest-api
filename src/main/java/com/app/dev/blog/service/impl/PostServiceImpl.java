@@ -1,11 +1,13 @@
 package com.app.dev.blog.service.impl;
 
-import java.util.Collections;
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.app.dev.blog.dtos.PostDto;
+import com.app.dev.blog.dtos.PostPageDto;
 import com.app.dev.blog.exception.ResourceNotFoundException;
 import com.app.dev.blog.mapper.PostMapper;
 import com.app.dev.blog.model.PostEntity;
@@ -33,12 +35,31 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public List<PostDto> getAllPosts() {
-		List<PostEntity> posts = postRepository.findAll();
-		if(posts.isEmpty())
-			return Collections.emptyList();
+	public PostPageDto getAllPosts(int pageNo, int pageSize, String sortBy, String sortDir) {
 		
-		return postMapper.convertPosEntitytListToPostDtoList(posts);
+		if(postRepository.count() == 0)
+			return new PostPageDto();
+		
+		Sort sort;
+		if(sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())) {
+			sort = Sort.by(sortBy).ascending();
+		}
+		else {
+			sort = Sort.by(sortBy).descending();
+		}
+		
+		Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+		Page<PostEntity> page = postRepository.findAll(pageable);
+		
+		PostPageDto postPageDto = new PostPageDto();
+		postPageDto.setContent(postMapper.convertPosEntitytListToPostDtoList(page.getContent()));
+		postPageDto.setPageNo(page.getNumber());
+		postPageDto.setPageSize(page.getSize());
+		postPageDto.setTotalElements(page.getTotalElements());
+		postPageDto.setTotalPages(page.getTotalPages());
+		postPageDto.setLast(page.isLast());
+				
+		return postPageDto;
 	}
 	
 	@Override

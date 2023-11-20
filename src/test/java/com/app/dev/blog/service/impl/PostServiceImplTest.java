@@ -3,6 +3,7 @@ package com.app.dev.blog.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -13,7 +14,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,8 +24,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.app.dev.blog.dtos.PostDto;
+import com.app.dev.blog.dtos.PostPageDto;
 import com.app.dev.blog.exception.ResourceNotFoundException;
 import com.app.dev.blog.mapper.PostMapper;
 import com.app.dev.blog.model.PostEntity;
@@ -76,24 +83,101 @@ class PostServiceImplTest {
 	}
 	
 	@Test
-	void givenEmptyPosts_whenGetAllPosts_thenReturnEmptyList() {
-		given(postRepository.findAll()).willReturn(Collections.emptyList());
+	void givenEmptyPosts_whenGetAllPosts_thenReturnEmptyPostPageDto() {
+		int pageNo = 0;
+		int pageSize = 10;
+		String sortBy = "title";
+		String sortDir = Sort.Direction.ASC.name();
 		
-		List<PostDto> allPosts = postService.getAllPosts();
+		given(postRepository.count()).willReturn(0L);
 		
-		assertThat(allPosts).isEmpty();
+		PostPageDto postPageDto = postService.getAllPosts(pageNo, pageSize, sortBy, sortDir);
+		
+		assertThat(postPageDto.getContent()).isEmpty();
+		
+		verify(postRepository, never()).findAll(any(Pageable.class));
 	}
 	
 	@Test
-	void givenPostsList_whenGetAllPosts_thenReturnPostDtoList() {
-		given(postRepository.findAll()).willReturn(List.of(postEntity));
+	void givenListOfPosts_whenGetAllPosts_thenReturnPaginatedPostPageDtoSortByASC() {
+		int pageNo = 0;
+		int pageSize = 10;
+		String sortBy = "title";
+		String sortDir = Sort.Direction.ASC.name();
+
+		PostEntity postEntity2 = PostEntity.builder()
+				   .id(2l)
+				   .title("ztest title")
+				   .description("ztest description")
+				   .content("ztest content").build();
 		
-		given(postMapper.convertPosEntitytListToPostDtoList(anyList())).willReturn(List.of(postDto));
+		PostDto postDto2 = PostDto.builder()
+				   				  .id(2l)
+				   				  .title("ztest title")
+				   				  .description("ztest description")
+				   				  .content("ztest content").build();
 		
-		List<PostDto> allPosts = postService.getAllPosts();
+		List<PostEntity> content = List.of(postEntity, postEntity2);
 		
-		assertThat(allPosts).hasSize(1)
-							.contains(postDto);
+		int totalElements = content.size();
+		
+		List<PostDto> postDtos = List.of(postDto, postDto2);
+		
+		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy).ascending());
+		
+		Page<PostEntity> page = new PageImpl<>(content, pageable, totalElements);
+		
+		given(postRepository.count()).willReturn(Long.valueOf(totalElements));
+		given(postRepository.findAll(pageable)).willReturn(page);
+		given(postMapper.convertPosEntitytListToPostDtoList(anyList())).willReturn(postDtos);
+		
+		PostPageDto postPageDto = postService.getAllPosts(pageNo, pageSize, sortBy, sortDir);
+		
+		assertThat(postPageDto.getContent()).hasSize(totalElements);
+		assertIterableEquals(postDtos, postPageDto.getContent());
+		assertThat(postPageDto.getContent()).isSortedAccordingTo(Comparator.comparing(PostDto::getTitle));
+		assertThat(postPageDto.getContent().get(0).getTitle()).isEqualTo("test title");
+	}
+	
+	@Test
+	void givenListOfPosts_whenGetAllPosts_thenReturnPaginatedPostPageDtoSortByDESC() {
+		int pageNo = 0;
+		int pageSize = 10;
+		String sortBy = "title";
+		String sortDir = Sort.Direction.DESC.name();
+
+		PostEntity postEntity2 = PostEntity.builder()
+				   						   .id(2l)
+				   						   .title("ztest title")
+				   						   .description("ztest description")
+				   						   .content("ztest content").build();
+		
+		PostDto postDto2 = PostDto.builder()
+				   				  .id(2l)
+				   				  .title("ztest title")
+				   				  .description("ztest description")
+				   				  .content("ztest content").build();
+		
+		List<PostEntity> content = List.of(postEntity, postEntity2);
+		
+		int totalElements = content.size();
+		
+		List<PostDto> postDtos = List.of(postDto2, postDto);
+		
+		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy).descending());
+		
+		Page<PostEntity> page = new PageImpl<>(content, pageable, totalElements);
+		
+		given(postRepository.count()).willReturn(Long.valueOf(totalElements));
+		given(postRepository.findAll(pageable)).willReturn(page);
+		given(postMapper.convertPosEntitytListToPostDtoList(anyList())).willReturn(postDtos);
+		
+		PostPageDto postPageDto = postService.getAllPosts(pageNo, pageSize, sortBy, sortDir);
+		
+		assertThat(postPageDto.getContent()).hasSize(totalElements);
+		assertIterableEquals(postDtos, postPageDto.getContent());
+		assertThat(postPageDto.getContent()).isSortedAccordingTo(Comparator.comparing(PostDto::getTitle).reversed());
+		assertThat(postPageDto.getContent().get(0).getTitle()).isEqualTo("ztest title");
 	}
 	
 	@Test
@@ -109,15 +193,10 @@ class PostServiceImplTest {
 	
 	@Test
 	void givenInvalidId_whenGetPostById_thenThrowException() {
+		int id = 0;
 		given(postRepository.findById(anyLong())).willReturn(Optional.empty());
 		
-		assertThrows(RuntimeException.class, () -> postService.getPostById(postEntity.getId()));
-		/**try {
-			postService.getPostById(0);
-		} 
-		catch (Exception e) {
-			assertEquals(RuntimeException.class, e.getClass());
-		}**/
+		assertThrows(ResourceNotFoundException.class, () -> postService.getPostById(id));
 	}
 	
 	@Test
@@ -150,8 +229,6 @@ class PostServiceImplTest {
 					.hasFieldOrPropertyWithValue("resourceName", "PostEntity")
 					.hasMessage("PostEntity not found with Id : '0'");
 		
-		//assertEquals(ResourceNotFoundException.class, exception.getClass());
-		//assertEquals("PostEntity", exception.getResourceName());
 		verify(postRepository, never()).save(any(PostEntity.class));	
 	}
 	

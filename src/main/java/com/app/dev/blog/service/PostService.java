@@ -1,17 +1,16 @@
 package com.app.dev.blog.service;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.app.dev.blog.dtos.PostDto;
+import com.app.dev.blog.dtos.PostPageDto;
 
 public interface PostService {
 	
 	public PostDto createPost(PostDto postDto);
 	
-	public List<PostDto> getAllPosts();
+	public PostPageDto getAllPosts(int pageNo, int pageSize, String sortBy, String sortDir);
 	
 	public PostDto getPostById(long id);
 	
