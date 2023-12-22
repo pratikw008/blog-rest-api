@@ -17,7 +17,7 @@ import lombok.ToString;
 @Builder
 public class PostDto {
 	
-	private long id;
+	private Long id;
 	
 	private String title; 
 	

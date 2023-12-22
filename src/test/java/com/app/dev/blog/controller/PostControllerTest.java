@@ -49,7 +49,7 @@ class PostControllerTest {
 	@BeforeEach
 	public void setup() {
 		postDto = PostDto.builder()
-						 .id(1)
+						 .id(1l)
 						 .title("test title")
 						 .description("test description")
 						 .content("test content").build();
@@ -72,7 +72,7 @@ class PostControllerTest {
 		int pageNo = 0;
 		int pageSize = 10;
 		PostDto postDto2 = PostDto.builder()
-				 				 .id(2)
+				 				 .id(2l)
 				 				 .title("test title 2")
 				 				 .description("test description 2")
 				 				 .content("test content 2").build();
@@ -103,7 +103,7 @@ class PostControllerTest {
 	@Test
 	void givenValidIdPostDto_whenUpdatePost_thenReturnUpdatedPost() throws JsonProcessingException, Exception {
 		PostDto updatedPostDto = PostDto.builder()
-				 						 .id(1)
+				 						 .id(1l)
 				 						 .title("test title updated")
 				 						 .description("test description updated")
 				 						 .content("test content updated")
