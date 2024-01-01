@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 import com.app.dev.blog.exception.BlogApiException;
 import com.app.dev.blog.exception.ResourceNotFoundException;
 import com.app.dev.blog.mapper.CommentMapper;
@@ -68,7 +69,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 	
 	@Override
-	public CommentDto updateComment(long postId, long commentId, CommentDto commentDto) {
+	public CommentDto updateComment(long postId, long commentId, CommentUpdateDto commentDto) {
 		if(!postRepository.existsById(postId))
 			throw new ResourceNotFoundException("Post", "id", postId);
 		

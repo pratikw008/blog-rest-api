@@ -18,12 +18,14 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 import com.app.dev.blog.exception.BlogApiException;
 import com.app.dev.blog.exception.ResourceNotFoundException;
 import com.app.dev.blog.mapper.CommentMapper;
@@ -194,7 +196,8 @@ class CommentServiceImplTest {
 		//given(postRepository.existsById(anyLong())).willReturn(false);
 		this.mockPostExistsById(postId, false);
 		
-		assertThrows(ResourceNotFoundException.class, () -> commentService.updateComment(postId, commentId, commentDto));
+		Executable methodCall = () -> commentService.updateComment(postId, commentId, this.createCommentUpdateDto());
+		assertThrows(ResourceNotFoundException.class, methodCall);
 	}
 	
 	@Test
@@ -206,7 +209,8 @@ class CommentServiceImplTest {
 		//given(commentRepository.findById(commentId)).willReturn(Optional.empty());
 		this.mockFindByCommentId(commentId, Optional.empty());
 		
-		assertThrows(ResourceNotFoundException.class, () -> commentService.updateComment(postId, commentId, commentDto));
+		Executable methodCall = () -> commentService.updateComment(postId, commentId, this.createCommentUpdateDto());
+		assertThrows(ResourceNotFoundException.class, methodCall);
 	}
 	
 	@Test
@@ -218,7 +222,8 @@ class CommentServiceImplTest {
 		//given(commentRepository.findById(anyLong())).willReturn(Optional.ofNullable(commentEntity));
 		this.mockFindByCommentId(commentId, Optional.ofNullable(commentEntity));
 		
-		assertThrows(BlogApiException.class, () -> commentService.updateComment(postId, commentId, commentDto));
+		Executable methodCall = () -> commentService.updateComment(postId, commentId, this.createCommentUpdateDto());
+		assertThrows(BlogApiException.class, methodCall);
 	}
 	
 	@Test
@@ -226,22 +231,16 @@ class CommentServiceImplTest {
 		long postId = 1;
 		long commentId = 1;
 		
-		CommentDto commentDtoRequest = CommentDto.builder()
-				.id(1l)
-				.name("test name")
-				.email("test email")
-				.body("Updated Test body").build();
-		
 		CommentEntity updatedCommentEntity = CommentEntity.builder()
 				.id(1l)
 				.name("test name")
-				.email("test email")
+				.email("test@email.com")
 				.body("Updated Test body").build();
 		
 		CommentDto commentDtoResponse = CommentDto.builder()
 				.id(1l)
 				.name("test name")
-				.email("test email")
+				.email("test@email.com")
 				.body("Updated Test body").build();
 		
 		//given(postRepository.existsById(anyLong())).willReturn(true);
@@ -252,11 +251,11 @@ class CommentServiceImplTest {
 		//given(commentMapper.convertCommentEntityToDto(any(CommentEntity.class))).willReturn(commentDtoRequest);
 		this.mockCommentMapperToDto(updatedCommentEntity, commentDtoResponse);
 		
-		CommentDto updatedComment = commentService.updateComment(postId, commentId, commentDtoRequest);
+		CommentDto updatedComment = commentService.updateComment(postId, commentId, createCommentUpdateDto());
 		
-		assertThat(updatedComment).isNotNull().isEqualTo(commentDtoRequest);
-		assertThat(updatedComment.getBody()).isEqualTo(commentDtoRequest.getBody());
-		verify(commentMapper, times(1)).updateCommentEntity(commentDtoRequest, commentEntity);
+		assertThat(updatedComment).isNotNull();
+		assertThat(updatedComment.getBody()).isEqualTo(this.createCommentUpdateDto().getBody());
+		verify(commentMapper, times(1)).updateCommentEntity(this.createCommentUpdateDto(), commentEntity);
 	}
 	
 	@Test
@@ -318,5 +317,13 @@ class CommentServiceImplTest {
 	
 	private void mockCommentMapperToDto(CommentEntity commentEntity, CommentDto commentDto) {
 		given(commentMapper.convertCommentEntityToDto(commentEntity)).willReturn(commentDto);
+	}
+	
+	private CommentUpdateDto createCommentUpdateDto() {
+		return CommentUpdateDto.builder()
+							  .id(1l)
+							  .name("test name")
+							  .email("test@email.com")
+							  .body("Updated Test body").build();
 	}
 }

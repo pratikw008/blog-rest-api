@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 import com.app.dev.blog.service.CommentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,22 +106,22 @@ class CommentControllerTest {
 	void givenPostIdCommentIdComment_whenUpdateComment_thenReturnUpdatedComment() throws JsonProcessingException, Exception {
 		long postId = 1;
 		long commentId = 1;
-		CommentDto commentDtoRequest = CommentDto.builder()
+		CommentUpdateDto commentUpdateRequest = CommentUpdateDto.builder()
 				.id(1l)
 				.name("test name")
-				.email("test email")
+				.email("testemail@gmail.com")
 				.body("Updated Test body").build();
 		
 		CommentDto commentDtoResponse = CommentDto.builder()
 				.id(1l)
 				.name("test name")
-				.email("test email")
+				.email("testemail@gmail.com")
 				.body("Updated Test body").build();
-		given(commentService.updateComment(postId, commentId, commentDtoRequest)).willReturn(commentDtoResponse);
+		given(commentService.updateComment(postId, commentId, commentUpdateRequest)).willReturn(commentDtoResponse);
 		
 		ResultActions resultActions = mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(commentDtoRequest)));
+				.content(objectMapper.writeValueAsString(commentUpdateRequest)));
 		
 		resultActions.andExpect(status().isOk())
 					 .andExpect(jsonPath("$.body", CoreMatchers.is(commentDtoResponse.getBody())))

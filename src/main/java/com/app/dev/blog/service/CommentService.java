@@ -3,6 +3,7 @@ package com.app.dev.blog.service;
 import java.util.List;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 
 public interface CommentService {
 	
@@ -12,7 +13,7 @@ public interface CommentService {
 	
 	public CommentDto getCommentById(long postId, long commentId);
 	
-	public CommentDto updateComment(long postId, long commentId, CommentDto commentDto);
+	public CommentDto updateComment(long postId, long commentId, CommentUpdateDto commentDto);
 	
 	public void deleteCommetById(long postId, long commentId);
 }

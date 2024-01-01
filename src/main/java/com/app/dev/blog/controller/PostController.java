@@ -19,6 +19,8 @@ import com.app.dev.blog.dtos.PostPageDto;
 import com.app.dev.blog.service.PostService;
 import com.app.dev.blog.util.PostConstant;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -31,7 +33,7 @@ public class PostController {
 	}
 
 	@PostMapping
-	public ResponseEntity<PostDto> createPost(@RequestBody PostDto postDto) {
+	public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostDto postDto) {
 		PostDto createdPost = postService.createPost(postDto);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 								   .path("/{id}")
@@ -56,7 +58,7 @@ public class PostController {
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity<PostDto> updatePost(@PathVariable("id") long id, @RequestBody PostDto postDto) {
+	public ResponseEntity<PostDto> updatePost(@PathVariable("id") long id, @Valid @RequestBody PostDto postDto) {
 		return ResponseEntity.ok(postService.updatePost(id, postDto));
 	}
 	

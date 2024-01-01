@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 import com.app.dev.blog.service.CommentService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -29,7 +32,8 @@ public class CommentController {
 	}
 	
 	@PostMapping("/{postId}/comments")
-	public ResponseEntity<CommentDto> createComment(@PathVariable("postId") long postId, @RequestBody CommentDto commentDto) {
+	public ResponseEntity<CommentDto> createComment(@PathVariable("postId") long postId, 
+													@Valid @RequestBody CommentDto commentDto) {
 		CommentDto savedComment = commentService.createComment(postId, commentDto);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 								   .path("/{postId}")
@@ -52,7 +56,7 @@ public class CommentController {
 	@PutMapping("/{postId}/comments/{commentId}")
 	public ResponseEntity<CommentDto> updateComment(@PathVariable("postId") long postId, 
 													@PathVariable("commentId") long commentId, 
-													@RequestBody CommentDto commentDto) {
+													@Valid @RequestBody CommentUpdateDto commentDto) {
 		CommentDto updatedComment = commentService.updateComment(postId, commentId, commentDto);
 		return ResponseEntity.ok(updatedComment);
 	}

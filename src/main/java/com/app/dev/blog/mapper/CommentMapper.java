@@ -9,6 +9,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.app.dev.blog.dtos.CommentDto;
+import com.app.dev.blog.dtos.CommentUpdateDto;
 import com.app.dev.blog.model.CommentEntity;
 
 @Mapper(componentModel = "spring")
@@ -23,5 +24,5 @@ public interface CommentMapper {
 	
 	@Mapping(target = "postEntity", ignore = true)
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-	public void updateCommentEntity(CommentDto commentDto, @MappingTarget CommentEntity commentEntity);
+	public void updateCommentEntity(CommentUpdateDto commentDto, @MappingTarget CommentEntity commentEntity);
 }
